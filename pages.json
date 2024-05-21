@@ -1,0 +1,256 @@
+{
+	"easycom": {
+		"^u-(.*)": "@/uview-ui/components/u-$1/u-$1.vue",
+		"^shopro-(.*)": "@/components/shopro-$1/shopro-$1.vue"
+	},
+	"pages": [ //pages数组中第一项表示应用启动页，参考：https://uniapp.dcloud.io/collocation/pages
+		{
+			"path": "pages/index/splash",
+			"style": {
+				"transparentTitle": "always"
+			}
+		},
+		{
+			"path": "pages/index/index",
+			"style": {
+				// "navigationBarTitleText": "%index.title%",
+				"enablePullDownRefresh": true,
+				"transparentTitle": "always"
+			}
+		}, {
+			"path": "pages/classify/classify",
+			"style": {
+				"navigationBarTitleText": "%index.classify%"
+			}
+		}, {
+			"path": "pages/inquiry/inquiry",
+			"style": {
+				"navigationBarTitleText": "%index.public-inquiry%"
+			}
+		}, {
+			"path": "pages/message/message",
+			"style": {
+				"navigationBarTitleText": "%index.message%"
+			}
+		}, {
+			"path": "pages/message/detail/detail",
+			"style": {
+				"navigationBarTitleText": "%index.message%"
+			}
+		}, {
+			"path": "pages/user/user",
+			"style": {
+				"navigationBarTitleText": "%index.user%"
+			}
+		}, {
+			"path": "pages/user/info",
+			"style": {
+				"navigationBarTitleText": "%user.info%"
+			}
+		}, {
+			"path": "pages/user/mineInquiry",
+			"style": {
+				"navigationBarTitleText": "%user.mineInquiry%"
+			}
+		}, {
+			"path": "pages/user/details/inquiryInfo",
+			"style": {
+				"navigationBarTitleText": "%user.inquiryInfo%"
+			}
+		}, {
+			"path": "pages/user/details/info",
+			"style": {
+				"navigationBarTitleText": "%user.inquiry-info%"
+			}
+		}, {
+			"path": "pages/user/details/allInfo",
+			"style": {
+				"navigationBarTitleText": "%index.public-enquiry%"
+			}
+		}, {
+			"path": "pages/public/chat/index",
+			"style": {
+				"navigationBarTitleText": "%index.public-enquiry%"
+			}
+		}, {
+			"path": "pages/user/mineFootmark",
+			"style": {
+				"navigationBarTitleText": "%user.mine-footmark%",
+				"transparentTitle": "always"
+			}
+		}, {
+			"path": "pages/user/mineCollection",
+			"style": {
+				"navigationBarTitleText": "%user.mine-collection%",
+				"transparentTitle": "always"
+			}
+		}, {
+			"path": "pages/user/mineQuestion",
+			"style": {
+				"navigationBarTitleText": "%user.platform-problem%"
+			}
+		}, {
+			"path": "pages/user/details/question",
+			"style": {
+				"navigationBarTitleText": "%user.platform-problem%"
+			}
+		}, {
+			"path": "pages/user/mineSuggestion",
+			"style": {
+				"navigationBarTitleText": "%user.platform-feedback%",
+				"transparentTitle": "always"
+			}
+		}, {
+			"path": "pages/user/details/feedback",
+			"style": {
+				"navigationBarTitleText": "%user.feedback-title%"
+			}
+		}, {
+			"path": "pages/user/details/feedbackItem",
+			"style": {
+				"navigationBarTitleText": "%user.feedback-info%"
+			}
+		}, {
+			"path": "pages/user/mineSet",
+			"style": {
+				"navigationBarTitleText": "%user.platform-set%"
+			}
+		}, {
+			"path": "pages/user/details/setLang",
+			"style": {
+				"navigationBarTitleText": "%user.set-lang%"
+			}
+		}, {
+			"path": "pages/user/details/setPassword",
+			"style": {
+				"navigationBarTitleText": "%user.set-password%"
+			}
+		}, {
+			"path": "pages/user/details/setEmail",
+			"style": {
+				"navigationBarTitleText": "%user.set-email%"
+			}
+		}, {
+			"path": "pages/login/login",
+			"style": {
+				"navigationBarTitleText": "%index.login%",
+				"transparentTitle": "always"
+			}
+		}, {
+			"path": "pages/serviceAgreement/serviceAgreement",
+			"style": {
+				"navigationBarTitleText": "%index.serviceAgreement%"
+			}
+		},
+		{
+			"path": "pages/register/register",
+			"style": {
+				"navigationBarTitleText": "%index.free-register%"
+			}
+		}, {
+			"path": "pages/forgetPassword/forgetPassword",
+			"style": {
+				"navigationBarTitleText": "%login.forget-password%"
+			}
+		},
+		{
+			"path": "pages/public/search",
+			"style": {
+				"navigationBarTitleText": "%index.search%",
+				"transparentTitle": "always"
+			}
+		},
+		{
+			"path": "pages/goods/detail",
+			"style": {
+				"navigationBarTitleText": "%detail.produce-info%"
+			}
+		},
+		{
+			"path": "pages/goods/inquiry-item",
+			"style": {
+				"navigationBarTitleText": "%index.inquiry%"
+			}
+		},
+		{
+			"path": "pages/company/manufacturer/manufacturer",
+			"style": {
+				"navigationBarTitleText": "%search.filter-shop%",
+				"enablePullDownRefresh": false,
+				"transparentTitle": "always"
+			}
+		},
+		{
+			"path": "pages/explosiveGoods/explosiveGoods",
+			"style": {
+				"navigationBarTitleText": "%index.explosive-goods%",
+				"enablePullDownRefresh": false
+			}
+		},
+		{
+			"path": "pages/hotList/hotList",
+			"style": {
+				"navigationBarTitleText": "%index.hot-list%",
+				"enablePullDownRefresh": false
+			}
+		}
+
+	],
+	"subPackages": [{
+		"root": "pages/goods",
+		"pages": [{
+			"path": "list",
+			"style": {
+				"enablePullDownRefresh": true,
+				"navigationStyle": "custom",
+				"onReachBottomDistance": 20 //距离底部多远时触发 单位为px
+			},
+			"meta": {
+				"auth": false,
+				"async": true,
+				"title": "商品列表",
+				"group": "商品"
+			}
+		}]
+	}],
+	"tabBar": {
+		"color": "#7A7E83",
+		"borderStyle": "black",
+		"backgroundColor": "#F8F8F8",
+		"list": [{
+				"pagePath": "pages/index/index",
+				"iconPath": "static/images/tabbar/tabbar_home.png",
+				"selectedIconPath": "static/images/tabbar/tabbar_home1.png",
+				"text": "%index.home%"
+			},
+			{
+				"pagePath": "pages/classify/classify",
+				"iconPath": "static/images/tabbar/tabbar_category.png",
+				"selectedIconPath": "static/images/tabbar/tabbar_category1.png",
+				"text": "%index.classify%"
+			}, {
+				"pagePath": "pages/inquiry/inquiry",
+				"iconPath": "static/images/tabbar/tabbar_inquiry.png",
+				"selectedIconPath": "static/images/tabbar/tabbar_inquiry1.png",
+				"text": "%index.inquiry%"
+			},
+			{
+				"pagePath": "pages/message/message",
+				"iconPath": "static/images/tabbar/tabbar_message.png",
+				"selectedIconPath": "static/images/tabbar/tabbar_message1.png",
+				"text": "%index.message%"
+			}, {
+				"pagePath": "pages/user/user",
+				"iconPath": "static/images/tabbar/tabbar_personal.png",
+				"selectedIconPath": "static/images/tabbar/tabbar_personal1.png",
+				"text": "%index.user%"
+			}
+		]
+	},
+	"globalStyle": {
+		"navigationBarTextStyle": "black",
+		"navigationBarTitleText": "uni-app",
+		"navigationBarBackgroundColor": "#fff",
+		"backgroundColor": "#F8F8F8"
+	}
+}
