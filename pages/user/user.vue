@@ -2,11 +2,11 @@
 	<view class="container">
 		<view class="header" v-if="isLogin">
 			<view class="avatar" @click="onToUser('id')">
-				<image src="https://demo.shopro.top/uploads/20240308/3de27769f453c6ecb4b1e2498a39a7e4.png" style="width: 100%;height: 100%;border-radius: 50%;"></image>
+				<image :src="userInfo.headImage" style="width: 100%;height: 100%;border-radius: 50%;"></image>
 			</view>
 			<view class="info">
-				<view class="username">admin</view>
-				<view class="email">888888888@163.com</view>
+				<view class="username">{{userInfo.userName}}</view>
+				<view class="email">{{userInfo.email}}</view>
 			</view>
 		</view>
 		<view class="header" v-if="!isLogin">
@@ -46,6 +46,7 @@
 		data() {
 			return {
 				isLogin: false,
+				userInfo: uni.getStorageSync('userInfo') ? JSON.parse(uni.getStorageSync('userInfo')) : {},
 				myServices: [{
 						icon: '../../static/images/icon/inquiry.png',
 						title: this.$t("user.mineInquiry"),
@@ -77,6 +78,13 @@
 					}
 				],
 			};
+		},
+		onShow() {
+			uni.getStorageSync('userInfo') ? this.isLogin = true : this.isLogin = false
+			this.$request.get('api/sysAuth/appUserInfo').then(res => {
+				uni.setStorageSync('userInfo',JSON.stringify(res.result))
+				this.userInfo = JSON.parse(uni.getStorageSync('userInfo'))
+			})
 		},
 		methods: {
 			onServiceClick(path) {

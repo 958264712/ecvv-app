@@ -17,7 +17,7 @@
 					<uni-easyinput class="labelInput1" v-model="baseFormData.emailVerificationCode"
 						:placeholder="$t('register.in-email-code')" />
 					<button class="button" size="mini" type="default"
-						@click="getVode">{{sendCode ?  nums : $t('login.in-email-code')}}</button>
+						@click="getVode">{{sendCode ?  nums : $t('login.take-email-code')}}</button>
 				</view>
 			</uni-forms-item>
 			<uni-forms-item label="" name="radio">
@@ -49,6 +49,7 @@
 				num: 60,
 				timer: null,
 				nums: '60s',
+				verificationCodeId: 0,
 				baseFormData: {
 					userName: '',
 					passWord: '',
@@ -141,37 +142,30 @@
 				}
 			},
 			getVode() {
-				if (!this.sendCode && this.baseFormData.email.length>0) {
+				if (!this.sendCode && this.baseFormData.email.length > 0) {
 					this.sendCode = true
 					this.timers()
-					this.$request.post('api/sysAuth/emailCode',{email:this.baseFormData.email,
-						type:2})
-					// this.$http('sysAuth.emailCode',{
-					// 	email:this.baseFormData.email,
-					// 		type:2
-					// })
-			
+					this.$request.post('api/sysAuth/emailCode', {
+						email: this.baseFormData.email,
+						type: 2
+					}).then(res => {
+						this.verificationCodeId = res.result
+					})
 				}
 			},
 			submit(form) {
 				this.$refs.form.validate().then(res => {
-					this.$http('sysAuth.register',{
-						userName: res.userName,
-						passWord: res.passWord,
-						email: res.email,
-						emailVerificationCode: res.emailVerificationCode
+					this.$request.post('api/sysAuth/register', {
+						userName: res.userName.trim(),
+						passWord: res.passWord.trim(),
+						email: res.email.trim(),
+						emailVerificationCode: res.emailVerificationCode.trim(),
+						verificationCodeId: this.verificationCodeId.trim()
+					}).then(res => {
+						uni.navigateTo({
+							url: "../login/login"
+						})
 					})
-					// this.$request.post('api/sysAuth/register', {
-					// 	userName: res.userName,
-					// 	passWord: res.passWord,
-					// 	email: res.email,
-					// 	emailVerificationCode: res.emailVerificationCode
-					// }).then(res=>{
-					// 	console.log(res);
-					// })
-					// uni.navigateTo({
-					// 	url: "../login/login"
-					// })
 				}).catch(err => {
 					console.log('表单错误信息：', err);
 				})

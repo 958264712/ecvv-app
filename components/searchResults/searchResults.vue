@@ -1,34 +1,9 @@
 <template>
 	<view class="ac_results">
 		<ul>
-			<li>
+			<li v-for="item in wordList" :key="item" @click="onSerach(item)">
 				<span class="item">
-					<font style="color:#EE9A00">1</font>2v Battery
-				</span>
-			</li>
-			<li>
-				<span class="item">
-					<font style="color:#EE9A00">1</font>2v Battery
-				</span>
-			</li>
-			<li>
-				<span class="item">
-					<font style="color:#EE9A00">1</font>2v Battery
-				</span>
-			</li>
-			<li>
-				<span class="item">
-					<font style="color:#EE9A00">1</font>2v Battery
-				</span>
-			</li>
-			<li>
-				<span class="item">
-					<font style="color:#EE9A00">1</font>2v Battery
-				</span>
-			</li>
-			<li>
-				<span class="item">
-					<font style="color:#EE9A00">1</font>2v Battery
+					{{item}}
 				</span>
 			</li>
 		</ul>
@@ -40,15 +15,39 @@
 		name: 'searchResults',
 		data() {
 			return {
+				wordList:[]
 			};
 		},
 		
 		props: {
-			
+			keyword:{type:String}
 		},
+		
+		watch: {
+		    // 监听parentValue的变化
+		    keyword: {
+		      immediate: true, // 是否立即执行handler
+		      handler(newValue, oldValue) {
+		        this.getList(); // 值变化时调用接口函数
+		      }
+		    }
+		  },
 		methods: {
 			goBack() {
 				uni.navigateBack();
+			},
+			onSerach(item){
+				uni.setStorageSync('searchVal', item)
+				this.$emit('changeSearchVal',item)
+			},
+			async getList(){
+				await this.$request.get('api/home/getSearchKeyWordList', {
+					keyword: this.$props.keyword
+				}).then(res => {
+					if (res.type === 'success') {
+						this.wordList = res.result
+					}
+				})
 			}
 		}
 	};

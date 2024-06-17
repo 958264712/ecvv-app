@@ -59,7 +59,7 @@
 		background-color: #ccc;
 		position: relative;
 		height: 100vh;
-
+		background-image: url('@/static/images/solash.jpg');
 		.fixed {
 			position: absolute;
 			left: 10vw;

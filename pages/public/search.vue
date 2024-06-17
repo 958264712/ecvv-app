@@ -55,10 +55,10 @@
 					<button class="item u-reset-button u-m-b-20 u-m-r-20  u-ellipsis-1" @tap="onSearch(item)"
 						v-for="(item, index) in historyTag" :key="index">{{ item }}</button>
 				</view>
-			</view>
+			</view> 
 		</view>
 		<view v-else>
-			<searchResults> </searchResults>
+			<searchResults :keyword="searchVal" @changeSearchVal="changeSearchVal"> </searchResults>
 		</view>
 		<recommendation :list="recommendationList"></recommendation>
 		<uni-popup ref="alertDialog" type="dialog">
@@ -134,6 +134,10 @@
 			// 清除输入框
 			clearSearch() {
 				this.searchVal = '';
+			},
+			changeSearchVal(item){
+				console.log(item);
+				this.searchVal = item
 			},
 			// 队列
 			getArr(list, item) {

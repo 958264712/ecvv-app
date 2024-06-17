@@ -23,13 +23,13 @@
 			<view>
 				<uni-grid :column="2" :show-border="false">
 					<uni-grid-item v-for="item in productList" style="height:200px;width: 180px;"
-						@click="onToProduct(item)">
+						@click="onToProduct(item.productID)">
 						<view style="width: 95%;height: 50%;">
 							<image :src="item.src" style="width: 100%;height: 100%;"></image>
 						</view>
 						<view class="text1">{{item.title}}</view>
-						<text class="price u-m-t-10">${{item.minPrice}}-{{item.maxPrice}}/{{item.unit}}</text>
-						<text class="moq u-m-t-10">{{$t("detail.moq") }}：{{item.moq}}{{item.unit}}</text>
+						<text class="price u-m-t-10">{{item.price}}/{{item.pieceOrSet}}</text>
+						<text class="moq u-m-t-10">{{$t("detail.moq") }}：{{item.order}}</text>
 					</uni-grid-item>
 				</uni-grid>
 			</view>
@@ -37,20 +37,21 @@
 		<view class="u-m-20" v-if="!showSort">
 			<view class="bg-white u-p-20 u-flex u-m-b-20" v-for="item in productList"
 				>
-				<view style="width: 30%;height: 80px;" @click="onToProduct(item)">
-					<image :src="item.src" style="width: 100%;height: 100%;"></image>
+				<view style="height: 80px;" @click="onToProduct(item)">
+					<image :src="item.src" style="width: 80px;height: 100%;"></image>
 				</view>
-				<view class="u-m-l-20">
-					<view class="text1" @click="onToProduct(item)">{{item.title}}</view>
-					<text class="price u-m-t-10" @click="onToProduct(item)">${{item.minPrice}}-{{item.maxPrice}}/{{item.unit}}</text>
+				<view class="u-m-l-20" style="width: 75%;">
+					<view class="text1" @click="onToProduct(item.productID)">{{item.title}}</view>
+					<text class="price u-m-t-10" @click="onToProduct(item.productID)">{{item.price}}/{{item.pieceOrSet}}</text>
 					<view class="moq u-m-t-10 u-flex u-row-between">
-						<view @click="onToProduct(item)">{{$t("detail.moq") }}：{{item.moq}}{{item.unit}}</view>
-						<view class="btn" @click="onToinquiry(item.id)">{{$t("detail.inquiry") }}</view>
+						<view @click="onToProduct(item.productID)">{{$t("detail.moq") }}：{{item.order}}</view>
+						<view class="btn" @click="onToinquiry(item.productID)">{{$t("detail.inquiry") }}</view>
 					</view>
 				</view>
 		
 			</view>
 		</view>
+		<loading :status="status"></loading>
 	</view>
 </template>
 
@@ -59,40 +60,23 @@
 		data() {
 			return {
 				showSort:true,
-				productList: [{
-						src: 'https://images.pexels.com/photos/19036832/pexels-photo-19036832.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-						title: '新能源汽车 比亚迪海豚四轮电动车 廉价SUV12312asadsadasdasdas312321',
-						minPrice: '39000.00',
-						maxPrice: '45000.00',
-						unit: '件',
-						moq: 5000
-					},
-					{
-						src: 'https://images.pexels.com/photos/19036832/pexels-photo-19036832.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-						title: '新能源汽车 比亚迪海豚四轮电动车 廉价SUV1231asdasdasd2312321',
-						minPrice: '39000.00',
-						maxPrice: '45000.00',
-						unit: '件',
-						moq: 5000
-					},
-					{
-						src: 'https://images.pexels.com/photos/19036832/pexels-photo-19036832.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-						title: '新能源汽车 比亚迪海豚四轮电动车 廉价SUV12312312321',
-						minPrice: '39000.00',
-						maxPrice: '45000.00',
-						unit: '件',
-						moq: 5000
-					},
-					{
-						src: 'https://images.pexels.com/photos/19036832/pexels-photo-19036832.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-						title: '新能源汽车 比亚迪海豚四轮电动车 廉价SUV12312312321',
-						minPrice: '39000.00',
-						maxPrice: '45000.00',
-						unit: '件',
-						moq: 5000
-					}
-				
-				]
+				status:'more',
+				listParams: {
+					cid: 0,
+					pagesize:20,
+					pageindex: 1
+				},
+				productList: []
+			}
+		},
+		onReachBottom() {
+			this.status = "loading"
+			if (this.listParams.pageindex < this.lastPage) {
+				this.listParams.pageindex += 1;
+				this.handlequeryProduct(Object.assign(this.listParams))
+				this.status = "more"
+			}else{
+				this.status = "noMore"
 			}
 		},
 		methods: {
@@ -105,7 +89,18 @@
 				uni.navigateTo({
 					url:`/pages/goods/detail?id=${data}`
 				})
-			}
+			},
+			async handlequeryProduct(data){
+				await this.$request.get('api/home/getHotProductList',data).then(res=>{
+					if(res.type==='success'){
+						this.productList =[...this.productList, ...res.result.list]
+						this.lastPage = res.result.pageCount
+					}
+				})
+			},
+		},
+		mounted() {
+			this.handlequeryProduct()
 		}
 	}
 </script>

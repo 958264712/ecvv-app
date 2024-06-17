@@ -1,26 +1,23 @@
 <template>
-	<uni-card style="margin:0;margin-top:10px;padding-bottom: 100px;">
+	<uni-card style="margin:0;margin-top:10px;">
 		<view class="model_scrollx flex_row">
 			<scroll-view class="uni-swiper-tab" scroll-x :style="'height:'+scrollH+'px'">
 				<scroll-view class="uni-swiper-tab" scroll-x>
 					<uni-segmented-control :current="current" :values="tagList" :style-type="styleType"
 						:active-color="activeColor" @clickItem="tabClick" />
 				</scroll-view>
-				<!-- <view class="scrollx_items tg_zdtg" v-for="item in list">
-					<view class="tgyx_title">{{item.name}}</view>
-				</view> -->
 			</scroll-view>
 		</view>
 		<view>
-			<view class="query-block query-product u-m-b-20" v-for="(item,index) in 10" @click="onToProduct(item)">
-				<image src="https://demo.shopro.top/uploads/20240308/3de27769f453c6ecb4b1e2498a39a7e4.png" class="query-image"></image>
+			<view class="query-block query-product u-m-b-20" v-for="(item,index) in productList" @click="onToProduct(item.productID)" :key="item.productID">
+				<image :src="item.src" class="query-image"></image>
 				<view style="width: 75%;">
-					<uni-title type="h4" title="高品质潜水服，潜水服，氯丁橡服，潜水装备 111111111111111111111111111111111111111111" class="query-title"></uni-title>
-					<text class="price u-m-t-10">$99~199/件</text>
-					<view class="query-time">{{$t("detail.moq") }}：5000件</view>
+					<uni-title type="h4" :title="item.title" class="query-title"></uni-title>
+					<text class="price u-m-t-10">{{item.price}}/{{item.pieceOrSet}}</text>
+					<view class="query-time">{{$t("detail.moq") }}：{{item.order}}</view>
 				</view>
 			</view>
-			<loading :status="status"></loading>
+			<!-- <loading :status="status"></loading> -->
 		</view>
 	</uni-card>
 </template>
@@ -32,11 +29,6 @@
 		components: {
 			loading
 		},
-		props: {
-			list: {
-				type: Array,
-			}
-		},
 		data() {
 			return {
 				scrollH: 30,
@@ -46,45 +38,70 @@
 				activeColor: '#15b4fb',
 				lastPage: 1,
 				listParams: {
-					category_id: 0,
-					keywords: '',
-					order: {
-						filterIndex: 0
-					},
-					page: 1
+					cid: 0,
+					pagesize:20,
+					pageindex: 1
 				},
-				tagList: []
+				tagList: ['推荐'],
+				recommendationList: [{name:'推荐',id:0}],
+				productList:[]
 			};
 		},
 		onReachBottom() {
-			this.status = "loading"
-			if (this.listParams.page < this.lastPage) {
-				this.listParams.page += 1;
-				this.status = "more"
-			}else{
-				this.status = "noMore"
-			}
+			
 		},
-		onLoad() {
-			// uni.getSystemInfo({
-			// 	success: function(res) { // res - 各种参数
-			// 		let info = uni.createSelectorQuery().select(".scrollx_items");
-			// 		info.boundingClientRect(function(data) { //data - 各种参数
-			// 			this.scrollH = data.height
-			// 		}).exec()
-			// 	}
-			// });
+		mounted() {
+			this.handleQuery()
 		},
-		created() {
-			this.list.map((item) => {
-				this.tagList.push(item.name)
+		beforeMount() {
+			uni.$on('onReachBottom',()=>{
+				this.status = "loading"
+				if (this.listParams.pageindex < this.lastPage) {
+					this.listParams.pageindex += 1;
+					this.handlequeryProduct(Object.assign(this.listParams))
+					this.status = "more"
+				}else{
+					this.status = "noMore"
+				}
 			})
 		},
+		destroyed() {
+			uni.$off('onReachBottom')
+		},
 		methods: {
+			async handleQuery(){
+				await this.$request.get('api/home/getRecomCatList').then(res=>{
+					if(res.type==='success'){
+						for(let key in res.result){
+							let obj = { 
+								name:key,
+								id:res.result[key]
+							}
+							this.tagList.push(key)
+							this.recommendationList.push(obj)
+						}
+						this.handlequeryProduct(Object.assign(this.listParams))
+					}
+				})
+			},
+			async handlequeryProduct(data){
+				await this.$request.get('api/home/getHotProductList',data).then(res=>{
+					if(res.type==='success'){
+						this.productList =[...this.productList, ...res.result.list]
+						this.lastPage = res.result.pageCount
+					}
+				})
+			},
 			tabClick(e) {
 				if (this.current !== e.currentIndex) {
 					this.current = e.currentIndex
-					this.listIndex = e.currentIndex
+					this.productList = []
+					this.listParams = {
+						cid: this.recommendationList[e.currentIndex].id,
+						pagesize:20,
+						pageindex: 1
+					}
+					// this.handlequeryProduct(Object.assign(this.listParams))
 				}
 			},
 			onToProduct(data){

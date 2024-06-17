@@ -1,23 +1,23 @@
 <template>
 	<view class="container">
 		<uni-forms ref="form" :modelValue="baseFormData" class="form" :rules="rules">
-			<uni-forms-item :label-width="85" :label="$t('login.user-name')" name="username">
-				<uni-easyinput class="labelInput" v-model="baseFormData.username"
-					:placeholder="$t('register.in-username')" />
+			<uni-forms-item :label-width="85" :label="$t('login.email-name')" name="email">
+				<uni-easyinput class="labelInput" v-model="baseFormData.email" :placeholder="$t('register.in-email')" />
 			</uni-forms-item>
-			<uni-forms-item :label-width="85" :label="$t('login.email-code')" name="emailcode">
+			<uni-forms-item :label-width="85" :label="$t('login.email-code')" name="verificationCode">
 				<view style="width:100%;display:flex;justify-content:space-between;">
-					<uni-easyinput class="labelInput1" v-model="baseFormData.emailcode"
+					<uni-easyinput class="labelInput1" v-model="baseFormData.verificationCode"
 						:placeholder="$t('register.in-email-code')" />
-					<button class="button" size="mini" type="default">{{$t('login.in-email-code')}}</button>
+					<button class="button" size="mini" type="default"
+						@click="getVode">{{sendCode ?  nums : $t('login.take-email-code')}}</button>
 				</view>
 			</uni-forms-item>
-			<uni-forms-item :label-width="85" :label="$t('forget.set-password')" name="userpassword">
-				<uni-easyinput class="labelInput" v-model="baseFormData.userpassword" type="password"
+			<uni-forms-item :label-width="85" :label="$t('forget.set-password')" name="newPassword">
+				<uni-easyinput class="labelInput" v-model="baseFormData.newPassword" type="password"
 					:placeholder="$t('register.in-password')" />
 			</uni-forms-item>
-			<uni-forms-item :label-width="85" :label="$t('forget.confirm-password')" name="userpassword1">
-				<uni-easyinput class="labelInput" v-model="baseFormData.userpassword1" type="password"
+			<uni-forms-item :label-width="85" :label="$t('forget.confirm-password')" name="confirmNewPassword">
+				<uni-easyinput class="labelInput" v-model="baseFormData.confirmNewPassword" type="password"
 					:placeholder="$t('forget.again-password')" />
 			</uni-forms-item>
 			<button type="primary" @click="submit('valiForm')">{{$t('forget.submit')}}</button>
@@ -36,30 +36,30 @@
 		data() {
 			return {
 				baseFormData: {
-					username: '',
-					userpassword: '',
-					userpassword1: '',
-					emailcode: '',
-					msgType: 'success',
-					messageText: '这是一条成功提示',
+					email: '',
+					newPassword: '',
+					confirmNewPassword: '',
+					verificationCode: '',
 				},
+				msgType: 'success',
+				messageText: '这是一条成功提示',
+				sendCode: false,
+				num: 60,
+				timer: null,
+				nums: '60s',
 				rules: {
-					username: {
+					email: {
 						rules: [{
 								required: true,
-								errorMessage: this.$t('register.in-username'),
+								errorMessage: this.$t('register.rules-email'),
 							},
 							{
-								validateFunction: (rule, value, data, callback) => {
-									if (value !== '123456') {
-										callback(this.$t('forget.rule-username'))
-									}
-									return true
-								},
+								pattern: /^\w+(-+.\w+)*@\w+(-.\w+)*.\w+(-.\w+)*$/,
+								errorMessage: this.$t('register.rules-email')
 							}
 						]
 					},
-					userpassword: {
+					newPassword: {
 						rules: [{
 								required: true,
 								errorMessage: this.$t('register.in-password'),
@@ -70,26 +70,27 @@
 							}
 						]
 					},
-					emailcode: {
-						rules: [{
-							required: true,
-							errorMessage: this.$t('register.rules-code'),
-						}, {
-							validateFunction: (rule, value, data, callback) => {
-								if (value !== '1234') {
-									callback(this.$t('forget.rule-code'))
-								}
-								return true
-							},
-						}]
-					},
-					userpassword1: {
+					// verificationCode: {
+					// 	rules: [{
+					// 		required: true,
+					// 		errorMessage: this.$t('register.rules-code'),
+					// 	}, {
+					// 		validateFunction: (rule, value, data, callback) => {
+					// 			console.log(typeof value);
+					// 			if (typeof value === Number) {
+					// 				callback(this.$t('forget.rule-code'))
+					// 			}
+					// 			return true
+					// 		},
+					// 	}]
+					// },
+					confirmNewPassword: {
 						rules: [{
 							required: true,
 							errorMessage: this.$t('register.in-password'),
 						}, {
 							validateFunction: (rule, value, data, callback) => {
-								if (value !== this.baseFormData.userpassword) {
+								if (value !== this.baseFormData.newPassword) {
 									callback(this.$t('forget.rule-password'))
 								}
 								return true
@@ -101,17 +102,50 @@
 		},
 
 		methods: {
+			timers() {
+				if (this.num <= 0) {
+					clearTimeout(this.timer)
+					this.num = 60
+					this.sendCode = false
+					this.timer = null
+				} else {
+					if (this.sendCode) {
+						this.num = this.num - 1
+						this.nums = this.num + 's'
+						this.timer = setTimeout(() => {
+							this.timers()
+						}, 1000)
+					}
+				}
+			},
+			getVode() {
+				if (!this.sendCode && this.baseFormData.email.length > 0) {
+					this.sendCode = true
+					this.timers()
+					this.$request.post('api/sysAuth/emailCode', {
+						email: this.baseFormData.email,
+						type: 3
+					})
+				}
+			},
 			submit(form) {
 				this.$refs.form.validate().then(res => {
-					this.msgType = 'success'
-					this.messageText = this.$t('forget.success')
-					this.$refs.message.open()
+					this.$request.post('api/sysAuth/forgetThePassword', {
+						email: res.email,
+						verificationCode: res.verificationCode,
+						newPassword: res.newPassword,
+						confirmNewPassword: res.confirmNewPassword,
+					}).then(res => {
+						this.msgType = 'success'
+						this.messageText = this.$t('forget.success')
+						this.$refs.message.open()
+						
 					setTimeout(() => {
 						uni.navigateTo({
 							url: "../login/login"
 						})
-
 					}, 500)
+					})
 				}).catch(err => {
 					this.msgType = 'error'
 					this.messageText = this.$t('forget.error')

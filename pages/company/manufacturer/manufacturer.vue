@@ -15,12 +15,12 @@
 			<!-- 商家标签 -->
 			<view class="u-p-20">
 				<view class="u-flex u-p-20 bg-w u-row-between">
-					<view>logo</view>
-					<view>
-						<uni-title type="h4" title="深圳XXXXXXXX生态汽车有限公司" style="margin-bottom: 5px;"></uni-title>
+					<image :src="companyObj.logoPath" style="width: 70px;height:70px"></image>
+					<view style="width: 70%;margin-left: 5px;">
+						<uni-title type="h4" :title="companyObj.companyname" style="margin-bottom: 5px;"></uni-title>
 						<view class="u-flex u-col-center u-row-between" style="width:40vw;font-size: 12px;">
-							<view>{{$t("user.footmark-manage1")}}39{{$t("user.footmark-year")}}</view>
-							<view>{{$t("user.footmark-authentication")}}</view>
+							<view>{{$t("user.footmark-manage1")}}{{companyObj.foundYear}}{{$t("user.footmark-year")}}</view>
+							<view v-if="companyObj.companylevel < 50">{{$t("user.footmark-authentication")}}</view>
 						</view>
 					</view>
 					<view class="u-flex u-col-center w20 ">
@@ -29,16 +29,16 @@
 						<!-- <uni-fav :checked="check" class="favBtn" circle="true" bgColorChecked="#007aff" @click="onClick"
 							style="margin-bottom: 26px;" /> -->
 						<uni-collapse ref="collapse" v-model="openCollapse" @change="change"
-							style="position: absolute;bottom: 6px;right: 0;height:20px;background-color: transparent;">
+							style="position: absolute;bottom: 6px;right: 8px;height:20px;background-color: transparent;">
 							<uni-collapse-item :title="$t('company.more')" title-border="none" style="background-color: transparent;">
 								<view class="u-p-20">
 									<view class="u-flex  u-col-top u-row-between u-m-b-10">
 										<text class="text-left">{{$t('company.main-product')}}</text>
-										<text class="text">电动汽车、环保汽车、电动汽车经销商、清洁能源汽车、电动汽车销售、混合动力汽车、绿色汽车、可持续交通</text>
+										<text class="text">{{companyObj.companyCardInfo.MainProducts}}</text>
 									</view>
 									<view class="u-flex u-col-top u-row-between">
 										<text class="text-left">{{$t('company.major-market')}}</text>
-										<text class="text">北美洲,南美洲,东欧,东南亚,非洲,大洋洲,中东,东亚,西欧</text>
+										<text class="text">{{companyObj.companyCardInfo.MainMarkets}}</text>
 									</view>
 								</view>
 							</uni-collapse-item>
@@ -55,35 +55,30 @@
 		<view>
 			<view v-if="current === 0">
 				<!-- 轮播图 -->
-				<view class="uni-margin-wrap">
+				<view class="uni-margin-wrap" v-if="companyObj.companySlidePicList.length">
 					<swiper class="swiper" circular :indicator-dots="indicatorDots" :autoplay="autoplay"
 						:interval="interval" :duration="duration">
-						<swiper-item>
-							<view class="swiper-item bg-gradual-green">公司形象图</view>
-						</swiper-item>
-						<swiper-item>
-							<view class="swiper-item bg-gradual-blue">B</view>
-						</swiper-item>
-						<swiper-item>
-							<view class="swiper-item bg-gradual-orange">C</view>
+						<swiper-item v-for="(item,index) in companyObj.companySlidePicList" :key="index">
+							<image :src="item" style="width: 100%;height: 100%;"></image>
 						</swiper-item>
 					</swiper>
 				</view>
 				<view class="u-p-20">
-					<productGrid title="电动汽车" @change-current="handleCurrent" :list="productList">
+					<productGrid :title="$t('user.all-categories')" @change-current="handleCurrent" :list="[...companyObj.newProducts,...companyObj.productShowcase]">
 					</productGrid>
 				</view>
-				<view class="u-p-20">
+				<!-- <view class="u-p-20">
 					<productGrid :type="1" title="环保汽车" @change-current="handleCurrent"
 						:list="productList"></productGrid>
-				</view>
+				</view> -->
 			</view>
 			<view v-if="current === 1">
 				<view style="position: relative;" class="type1">
-					<uni-segmented-control :current="current1" :values="items1" :style-type="styleType"
-						:active-color="activeColor1" @clickItem="onClickItem1" style="margin-right:50px" />
+					<view class="u-m-10">
+						<text style="color:#ec652b;border-bottom:2px solid #ec652b;font-size: 14px;">{{items1[0]}}</text>
+					</view>
 					<uni-collapse ref="collapse" v-model="openCollapse1" @change="change1"
-						style="position: absolute;bottom: 40px;right:55px;height:0px;width:0px;background-color: transparent;">
+						style="position: absolute;bottom: 35px;right:55px;height:0px;width:0px;background-color: transparent;">
 						<uni-collapse-item title-border="none" style="background-color: transparent;">
 							<view class="u-p-20">
 								<view v-for="item in classifyList" class="u-m-b-20">
@@ -92,7 +87,7 @@
 							</view>
 						</uni-collapse-item>
 					</uni-collapse>
-					<view style="position: absolute;bottom: 3px;right: 15px;" @click="showSort=!showSort">
+					<view style="position: absolute;bottom: 0px;right: 15px;" @click="showSort=!showSort">
 						<svg v-if="!showSort" t="1714381858769" class="icon" viewBox="0 0 1024 1024" version="1.1"
 							xmlns="http://www.w3.org/2000/svg" p-id="4794" width="16" height="16">
 							<path
@@ -110,30 +105,29 @@
 				<view class="content" v-if="showSort">
 					<view>
 						<uni-grid :column="2" :show-border="false">
-							<uni-grid-item v-for="item in productList" style="height:200px;width: 180px;"
-								@click="toHref(item.href)">
+							<uni-grid-item v-for="item in [...companyObj.newProducts,...companyObj.productShowcase]" style="height:200px;width: 180px;"
+								@click="toHref(item.pid)">
 								<view style="width: 95%;height: 50%;">
-									<image :src="item.src" style="width: 100%;height: 100%;"></image>
+									<image :src="item.picPath" style="width: 100%;height: 100%;"></image>
 								</view>
-								<view class="text1">{{item.title}}</view>
-								<text class="price u-m-t-10">${{item.minPrice}}-{{item.maxPrice}}/{{item.unit}}</text>
-								<text class="moq u-m-t-10">{{$t('detail.moq')}}：{{item.moq}}{{item.unit}}</text>
+								<view class="text1">{{item.productname}}</view>
+								<text class="price u-m-t-10">{{item.m_Currency}}{{item.m_FobPrice}}/{{item.minOrderUnit}}</text>
+								<text class="moq u-m-t-10">{{$t('detail.moq')}}：{{item.m_Minimum_Order}}{{item.minOrderUnit}}</text>
 							</uni-grid-item>
 						</uni-grid>
 					</view>
 				</view>
 				<view v-if="!showSort">
-					<view class="bg-white u-p-20 u-flex u-m-b-20" v-for="item in productList"
-						@click="toHref(item.href)">
-						<view style="width: 30%;height: 80px;">
-							<image :src="item.src" style="width: 100%;height: 100%;"></image>
+					<view class="bg-white u-p-20 u-flex u-m-b-20" v-for="item in [...companyObj.newProducts,...companyObj.productShowcase]">
+						<view style="width: 30%;height: 80px;" @click="toHref(item.pid)">
+							<image :src="item.picPath" style="width: 100%;height: 100%;"></image>
 						</view>
-						<view class="u-m-l-20">
-							<view class="text1">{{item.title}}</view>
-							<text class="price u-m-t-10">${{item.minPrice}}-{{item.maxPrice}}/{{item.unit}}</text>
+						<view style="width: 65%;" class="u-m-l-20">
+							<view class="text1" @click="toHref(item.pid)">{{item.productname}}</view>
+							<text class="price u-m-t-10" @click="toHref(item.pid)">{{item.m_Currency}}{{item.m_FobPrice}}/{{item.minOrderUnit}}</text>
 							<view class="moq u-m-t-10 u-flex u-row-between">
-								<view>{{$t('detail.moq')}}：{{item.moq}}{{item.unit}}</view>
-								<view class="btn" @click="onToinquiry(item.id)">询价</view>
+								<view @click="toHref(item.pid)">{{$t('detail.moq')}}：{{item.m_Minimum_Order}}{{item.minOrderUnit}}</view>
+								<view class="btn" @click="onToinquiry(item.pid)">询价</view>
 							</view>
 						</view>
 
@@ -145,97 +139,87 @@
 					<view>
 						<uni-title type="h4" :title="$t('company.intro')"></uni-title>
 						<uni-card class="u-p-5 u-m-0">
-							欢迎来到 ECVV，您在深圳寻求环保交通解决方案的首选目的地。作为绿色未来的倡导者，我们独家提供全球清洁能源汽车领导者比亚迪的各种电动汽车。
-
-							我们对可持续发展的承诺不仅限于我们的产品；它根植于我们业务运营的各个方面。从采购环保材料到最大限度地减少碳足迹，我们努力在汽车行业树立榜样。
-
-							无论您正在寻找可靠的电动轿车还是宽敞的电动 SUV，ECVV
-							都能提供适合您生活方式和预算的完美车辆。我们知识丰富的员工致力于提供卓越的客户服务，确保为每位客户提供无缝且愉快的购车体验。
-
-							加入我们，共同实现交通运输革命，拥抱更清洁、更环保的明天。立即访问 ECVV，迈出迈向更可持续未来的第一步。
-
-							立即联系我们，了解有关我们电动汽车产品线的更多信息并安排咨询。
+							{{companyObj.description}}
 						</uni-card>
 						<uni-title type="h4" :title="$t('inquiryItem.basic-info')"></uni-title>
 						<uni-card class="u-p-5 u-m-0">
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('inquiryItem.company-name')}}</text>
-								<text class="text-right">深圳XXX生态汽车有限公司</text>
+								<text class="text-right">{{companyObj.companyname}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.main-product')}}</text>
-								<text class="text-right">电动汽车、环保汽车、电动汽车经销商、清洁能源汽车、电动汽车销售、混合动力汽车、绿色汽车、可持续交通</text>
+								<text class="text-right">{{companyObj.companyCardInfo.MainProducts}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.major-market')}}</text>
-								<text class="text-right">北美洲,南美洲,东欧,东南亚,非洲,大洋洲,中东,东亚,西欧</text>
+								<text class="text-right">{{companyObj.companyCardInfo.MainMarkets}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.establishment-time')}}</text>
-								<text class="text-right">1985年</text>
+								<text class="text-right">{{companyObj.companyCardInfo.YearEstablished}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.ownership-type')}}</text>
-								<text class="text-right">公司/有限责任公司</text>
+								<text class="text-right">{{companyObj.companyCardInfo.BusinessType}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.register-capital')}}</text>
-								<text class="text-right">10000.00万美元</text>
+								<text class="text-right">{{companyObj.companyCardInfo.RegisteredCapital}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.year-sales')}}</text>
-								<text class="text-right">5000万美元~1亿美元</text>
+								<text class="text-right">{{companyObj.companyCardInfo.AnnualSalesVolume}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.percentage-exports')}}</text>
-								<text class="text-right">91%~100%</text>
+								<text class="text-right">{{companyObj.companyCardInfo.ExportPercentage}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.num-employees')}}</text>
-								<text class="text-right">100-500人</text>
+								<text class="text-right">{{companyObj.companyCardInfo.EmployNumber}}</text>
 							</view>
 						</uni-card>
 						<uni-title type="h4" :title="$t('company.factory-info')"></uni-title>
 						<uni-card class="u-p-5 u-m-0">
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.factory-size')}}</text>
-								<text class="text-right">10000~30000平方米</text>
+								<text class="text-right">{{companyObj.factoryInfo.FactorySize}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.assurance-control')}}</text>
-								<text class="text-right">内部</text>
+								<text class="text-right">{{companyObj.factoryInfo.QA/QC}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.production-lines')}}</text>
-								<text class="text-right">10以上</text>
+								<text class="text-right">{{companyObj.factoryInfo.NumberofProductionLines}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.rd-number')}}</text>
-								<text class="text-right">100人以上</text>
+								<text class="text-right">{{companyObj.factoryInfo.NumberofR&DStaff}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.quality-inspection')}}</text>
-								<text class="text-right">100人以上</text>
+								<text class="text-right">{{companyObj.factoryInfo.NumberofQCStaff}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.manage-certification')}}</text>
-								<text class="text-right">HACCP、ISO 9000/9001/9004/19011:2000、QS-9000、ISO
-									14000/14001、ISO/TS 16949、SA8000、ISO 17799、OHASA 18001、TL9000</text>
+								<text class="text-right">{{companyObj.factoryInfo.ManagementCertification}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.contract-drafting')}}</text>
-								<text class="text-right">提供 OEM 服务、提供设计服务、提供买家标签</text>
+								<text class="text-right">{{companyObj.factoryInfo.ContractManufacturing}}</text>
 							</view>
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('company.oem')}}</text>
-								<text class="text-right">10</text>
+								<text class="text-right">{{companyObj.factoryInfo.YearsofOEMExperience}}</text>
 							</view>
 						</uni-card>
 						<uni-title type="h4" :title="$t('company.authentication-information')"></uni-title>
 						<uni-card class="u-p-5 u-m-0">
 							<view class="u-flex u-col-top u-m-b-20">
 								<text class="text-left">{{$t('user.footmark-authentication')}}</text>
-								<text class="text-right">{{$t('user.authentication-ok')}}</text>
+								<text class="text-right">{{companyObj.companylevel < 50 ? $t('user.authentication-ok'):$t('user.authentication-no')}}</text>
 							</view>
 						</uni-card>
 					</view>
@@ -247,43 +231,43 @@
 					<uni-card class="u-p-5 u-m-0">
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.contact-man')}}</text>
-							<text class="text-right">黄姚明 先生</text>
+							<text class="text-right">{{companyObj.companyContactPerson}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.telephone')}}</text>
-							<text class="text-right">+86-755-82468418</text>
+							<text class="text-right">{{companyObj.telephone}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.fax')}}</text>
-							<text class="text-right">+86-755-82468418</text>
+							<text class="text-right">{{companyObj.fax}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.address')}}</text>
-							<text class="text-right">中国广东省深圳市XXX区XXX路XXX号XXX大厦XXXX室</text>
+							<text class="text-right">{{companyObj.companyaddress}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.zip-code')}}</text>
-							<text class="text-right">518000</text>
+							<text class="text-right">{{companyObj.postcode}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.country-region')}}</text>
-							<text class="text-right">中国</text>
+							<text class="text-right">{{companyObj.countryName}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.province-state')}}</text>
-							<text class="text-right">广东</text>
+							<text class="text-right">{{companyObj.companyarea}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.city')}}</text>
-							<text class="text-right">深圳</text>
+							<text class="text-right">{{companyObj.companycity}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.web-site')}}</text>
-							<text class="text-right">https://www.ecvv.com</text>
+							<text class="text-right">{{companyObj.companyhttp}}</text>
 						</view>
 						<view class="u-flex u-col-top u-m-b-20">
 							<text class="text-left">{{$t('company.ecvv-website')}}</text>
-							<text class="text-right">https://www.ecvv.com/company/micheallence/index.html</text>
+							<text class="text-right">{{companyObj.companySiteUrl}}</text>
 						</view>
 					</uni-card>
 				</view>
@@ -305,8 +289,8 @@
 				openCollapse1: false,
 				showSort: true,
 				items: [this.$t('index.home'), this.$t('search.filter-produce'), this.$t('company.name'), this.$t('company.call-me')],
-				items1: ['全部分类', '电动汽车', '环保汽车', '清洁能源车'],
-				classifyList: ['全部分类', '电动汽车', '环保汽车', '清洁能源车', '电动汽车经销商', '电动汽车销售', '混合动力汽车', '绿色汽车', '可持续交通'],
+				items1: [this.$t('user.all-categories'),null,null,null],
+				classifyList: [this.$t('user.all-categories')],
 				current: 0,
 				current1: 0,
 				activeColor: 'white',
@@ -316,6 +300,7 @@
 				autoplay: true,
 				interval: 2000,
 				duration: 500,
+				companyObj:{},
 				productList: [{
 						src: 'https://images.pexels.com/photos/19036832/pexels-photo-19036832.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
 						title: '新能源汽车 比亚迪海豚四轮电动车 廉价SUV12312312321',
@@ -352,16 +337,31 @@
 				]
 			}
 		},
+		async mounted() {
+			await this.$request.get('api/home/companyHome',{ecompanyId:this.$route.query.id}).then(res=>{
+				if(res.type==='success'){
+					this.companyObj = res.result
+				}
+			})
+		},
 		methods: {
 			onClickItem(e) {
 				if (this.current !== e.currentIndex) {
 					this.current = e.currentIndex
 				}
 			},
-			onClickItem1(e) {
-				if (this.current1 !== e.currentIndex) {
-					this.current1 = e.currentIndex
-				}
+			// onClickItem1(e) {
+			// 	if (this.current1 !== e.currentIndex) {
+			// 		this.current1 = e.currentIndex
+			// 	}
+			// },
+			toHref(t) {
+				this.$Router.push({
+					path: '../../goods/detail',
+					query: {
+						id: t
+					}
+				})
 			},
 			onClick() {
 				this.check = !this.check
@@ -380,6 +380,14 @@
 			},
 			handleCurrent(num){
 				this.current = num
+			},
+			onToinquiry(t) {
+				this.$Router.push({
+					path: '../../goods/inquiry-item',
+					query: {
+						id: t
+					}
+				})
 			}
 		}
 	}

@@ -43,6 +43,9 @@ export function createApp() {
 	app.config.globalProperties.$request = request
 	app.config.globalProperties.$store = store
 	app.config.globalProperties.$IMG_URL = 'https://file.shopro.top'
+	app.config.globalProperties.$BASE_URL = 'https://newsiteapi.ecvv.com'
+	// app.config.globalProperties.$BASE_URL = 'http://192.168.1.57:5005'
+	
 	app.use(i18n)
 	return {
 		app

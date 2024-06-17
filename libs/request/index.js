@@ -3,13 +3,49 @@ import validate from "../function/test";
 import {
 	API_URL
 } from '@/env'
+const accessTokenKey = 'accessToken';
+const refreshAccessTokenKey = `x-${accessTokenKey}`;
+const token = uni.getStorageSync('accessToken');
 class Request {
 	// 设置全局默认配置
 	setConfig(customConfig) {
 		// 深度合并对象，否则会造成对象深层属性丢失
 		this.config = deepMerge(this.config, customConfig);
 	}
-
+	decryptJWT(token) {
+		token = token.replace(/_/g, '/').replace(/-/g, '+');
+		var json = decodeURIComponent(escape(window.atob(token.split('.')[1])));
+		return JSON.parse(json);
+	}
+	getJWTDate(timestamp) {
+		return new Date(timestamp * 1000);
+	}
+	// clearAllStorage() {
+	//   try {
+	//     // 首先获取所有storage的key
+	//     const keys = await uni.getStorageInfoSync();
+	//     const allKeys = keys.keys;
+	
+	//     // 遍历所有key并逐个删除
+	//     for (let i = 0; i < allKeys.length; i++) {
+	//       await uni.removeStorageSync(allKeys[i]);
+	//     }
+	//     console.log('所有storage数据已清除');
+	//   } catch (e) {
+	//     console.error('清除storage时发生错误:', e);
+	//   }
+	// }
+	
+	clearAccessTokens = () => {
+		uni.removeStorageSync(accessTokenKey)
+		uni.removeStorageSync('refreshToken')
+		// 清除其他
+		// this.clearAllStorage()
+		uni.clearStorageSync();
+	
+		// 刷新浏览器
+		window.location.reload();
+	};
 	// 主要请求部分
 	request(options = {}) {
 		// 检查请求拦截
@@ -22,12 +58,31 @@ class Request {
 			}
 			this.options = interceptorRequest;
 		}
-			
-		// const cookies = uni.getStorageSync('.AspNetCore.Session');
-		// if(cookies){
-		// 	options.header['Cookie'] = `.AspNetCore.Session=${cookies}`;
+		if (token) {
+			// 将 token 添加到请求报文头中
+			options.header['Authorization'] = `Bearer ${token}`;
+
+			// 判断 accessToken 是否过期
+			const jwt = this.decryptJWT(token);
+			const exp = this.getJWTDate(jwt.exp);
+
+			// token 已经过期
+			if (new Date() >= exp) {
+				// 获取刷新 token
+				const refreshAccessToken = uni.getStorageSync('refreshToken');
+
+				// 携带刷新 token
+				if (refreshAccessToken) {
+					options.header['X-Authorization'] = `Bearer ${refreshAccessToken}`;
+				}
+			}
+
+		}
+		// if (token) {
+		// 	options.header = options.header || {};
+		// 	options.header['Access-Token'] = token;
 		// }
-		console.log(options);
+		// console.log(token, options.header);
 		options.dataType = options.dataType || this.config.dataType;
 		options.responseType = options.responseType || this.config.responseType;
 		options.url = options.url || '';
@@ -64,6 +119,20 @@ class Request {
 							'function') {
 							let resInterceptors = this.interceptor.response(response.data);
 							if (resInterceptors !== false) {
+								// 读取响应报文头 token 信息
+								var accessToken = response.header[accessTokenKey];
+								var refreshAccessToken = response.header[refreshAccessTokenKey];
+
+								// 判断是否是无效 token
+								if (accessToken === 'invalid_token') {
+									this.clearAccessTokens();
+								}
+								// 判断是否存在刷新 token，如果存在则存储在本地
+								else if (refreshAccessToken && accessToken && accessToken !==
+									'invalid_token') {
+									uni.setStorageSync(accessTokenKey,accessToken)
+									uni.setStorageSync('refreshToken',refreshAccessToken)
+								}
 								resolve(resInterceptors);
 							} else {
 								reject(response.data);
@@ -115,7 +184,9 @@ class Request {
 			baseUrl: API_URL, // 请求的根域名
 			// 默认的请求头
 			header: {
-				"Cookie":'CfDJ8MwEFixkpp1GsSQtxSX6vz4PQat8SoywWEhCK3ybVWMh5Shh0QoWVUyY1Zyydtv3tQAzpFP4aPxgCUQOl2JkzWUF1VIpTXiaIwcBFy8flx0VYgPQKYoyDyhU03V3nr33uBpdYNv616qpUKF%2FzxTb3xV2dcNFArC3ibODWUpa4YIv'
+				'Content-Type': 'application/json',
+				'Authorization': token,
+				'X-Authorization':`Bearer ${uni.getStorageSync('refreshToken')}`
 			},
 			method: 'POST',
 			// 设置为json，返回后uni.request会对数据进行一次JSON.parse

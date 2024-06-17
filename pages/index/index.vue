@@ -2,6 +2,10 @@
 	<view class="container">
 		<uni-grid :column="2" :showBorder="false" class="u-p-20">
 			<view class="login">
+				<image v-if="isLogin" :src="userInfo?.headImage" ></image>
+				<view v-if="!isLogin" :src="userInfo?.headImage" @click="onToLogin">
+					{{$t('index.no-login')}}
+				</view>
 			</view>
 			<view class="u-flex w85" @click="onToSearch">
 				<input style="width: 85%;padding:0;marginLeft:20px;"/> 
@@ -40,13 +44,12 @@
 			<template v-slot:right><uni-icons type="right" size="22" @click="onToGoods"></uni-icons></template>
 			<view class="model_scrollx flex_row">
 				<scroll-view class="uni-swiper-tab" scroll-x :style="'height:'+scrollH+'px'">
-					<view class="scrollx_items tg_zdtg" v-for="item in 10" @click="onToProduct(item)">
-						<image src="https://demo.shopro.top/uploads/20240308/3de27769f453c6ecb4b1e2498a39a7e4.png" class="tgyx_img"></image>
-						<view class="tgyx_title">高品质潜水服，潜水服，氯丁橡服，潜水装备高品质潜水服，潜水服，氯丁橡服，潜水装备</view>
-						<view class="tgyx_price">$99~199/件</view>
-						<view class="tgyx_desc">{{$t('detail.moq')}}:5000件</view>
+					<view class="scrollx_items tg_zdtg" v-for="item in productList" @click="onToProduct(item.productID)">
+						<image :src="item.src" class="tgyx_img"></image>
+						<view class="tgyx_title">{{item.title}}</view>
+						<view class="tgyx_price">{{item.price}}/{{item.pieceOrSet}}</view>
+						<view class="tgyx_desc">{{$t('detail.moq')}}:{{item.order}}</view>
 					</view>
-					
 				</scroll-view>
 			</view>
 		</uni-section>
@@ -72,7 +75,7 @@
 				</scroll-view>
 			</view>
 		</uni-section>
-		<recommendation :list="recommendationList"></recommendation>
+		<recommendation ></recommendation>
 	</view>
 </template>
 
@@ -81,36 +84,26 @@
 	export default {
 		data() {
 			return {
+				isLogin:false,
 				systemLocale: '',
 				applicationLocale: '',
 				current: 0,
 				dotsStyles: {},
+				userInfo: uni.getStorageSync('userInfo') ? JSON.parse(uni.getStorageSync('userInfo')) : {},
 				swiperDotIndex: 0,
 				scrollH: 200,
-				recommendationList: [{
-						name: '推荐'
-					},
-					{
-						name: '农业'
-					},
-					{
-						name: '服饰'
-					},
-					{
-						name: '汽车'
-					},
-					{
-						name: '摩托车'
-					},
-					{
-						name: '美容'
-					},
-					{
-						name: '美发'
-					},
-				],
-
+				productList:[]
 			}
+		},
+		onReachBottom() {
+			uni.$emit('onReachBottom')
+		},
+		onShow() {
+			uni.getStorageSync('userInfo') ? this.isLogin = true : this.isLogin = false
+			this.$request.get('api/sysAuth/appUserInfo').then(res => {
+				uni.setStorageSync('userInfo',JSON.stringify(res.result))
+				this.userInfo = JSON.parse(uni.getStorageSync('userInfo'))
+			})
 		},
 		methods: {
 			onToinquriy() {
@@ -131,6 +124,11 @@
 			change(e) {
 				this.current = e.detail.current
 			},
+			onToLogin() {
+				uni.navigateTo({
+					url: '../../pages/login/login'
+				})
+			},
 			onToGoods() {
 				uni.navigateTo({
 					url: '../../pages/explosiveGoods/explosiveGoods'
@@ -141,17 +139,29 @@
 					url: `../../pages/hotList/hotList?title=${str}`
 				})
 			},
+			async handlequeryProduct(data){
+				await this.$request.get('api/home/getHotProductList',{pagesize:10,pageindex:1}).then(res=>{
+					if(res.type==='success'){
+						this.productList =res.result.list
+					}
+				})
+			},
 			onToProduct(data){
 				uni.navigateTo({
 					url:`/pages/goods/detail?id=${data}`
 				})
-			}
+			}	
 		},
 		mounted() {
 			uni.setTabBarBadge({
 				index:3,
 				text:String(4)
 			})
+			// this.$request.get('api/sysAuth/appUserInfo').then(res => {
+			// 	uni.setStorageSync('userInfo',JSON.stringify(res.result))
+			// 	this.userInfo = JSON.parse(uni.getStorageSync('userInfo'))
+			// })
+			this.handlequeryProduct()
 		}
 	}
 </script>
@@ -172,8 +182,22 @@
 		width: 36px;
 		height: 36px;
 		border-radius: 50%;
-		background-color: #000;
-
+		uni-image{
+			border-radius: 50%;
+			width: 100%;
+			height: 100%;
+		}
+		uni-view{
+			border-radius: 50%;
+			width: 100%;
+			font-size: 18rpx;
+			text-align: center;
+			line-height: 36px;
+			font-weight: bold;
+			color: #eee;
+			height: 100%;
+			background-color: #15b4fb;
+		}
 	}
 
 	.bg-f {

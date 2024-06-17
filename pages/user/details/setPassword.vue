@@ -10,7 +10,7 @@
 					<uni-easyinput class="labelInput1" v-model="baseFormData.emailcode"
 						:placeholder="$t('register.in-email-code')" />
 					<button class="button" size="mini" type="default"
-						@click="getVode">{{sendCode ?  nums : $t('login.in-email-code')}}</button>
+						@click="getVode">{{sendCode ?  nums : $t('login.take-email-code')}}</button>
 				</view>
 			</uni-forms-item>
 			<uni-forms-item :label-width="95" :label="$t('user.password-old')" name="oldpassword">
@@ -41,9 +41,10 @@
 		data() {
 			return {
 				sendCode: false,
-				num: 120,
+				num: 60,
 				timer: null,
-				nums: '120s',
+				nums: '60s',
+				userInfo: uni.getStorageSync('userInfo') ? JSON.parse(uni.getStorageSync('userInfo')) : {},
 				baseFormData: {
 					username: '',
 					oldpassword:'',
@@ -59,14 +60,6 @@
 								required: true,
 								errorMessage: this.$t('register.in-username'),
 							},
-							{
-								validateFunction: (rule, value, data, callback) => {
-									if (value !== '123456') {
-										callback(this.$t('forget.rule-username'))
-									}
-									return true
-								},
-							}
 						]
 					},
 					oldpassword: {
@@ -102,13 +95,6 @@
 						rules: [{
 							required: true,
 							errorMessage: this.$t('register.rules-code'),
-						}, {
-							validateFunction: (rule, value, data, callback) => {
-								if (value !== '1234') {
-									callback(this.$t('forget.rule-code'))
-								}
-								return true
-							},
 						}]
 					},
 					userpassword1: {
@@ -127,12 +113,14 @@
 				},
 			};
 		},
-
+		onShow() {
+			this.baseFormData.username = this.userInfo.userName
+		},
 		methods: {
 			timers() {
 				if (this.num <= 0) {
 					clearTimeout(this.timer)
-					this.num = 120
+					this.num = 60
 					this.sendCode = false
 					this.timer = null
 				} else {
@@ -149,21 +137,31 @@
 				if (!this.sendCode ) {
 					this.sendCode = true
 					this.timers()
-					// this.$request.post('api/sysAuth/emailCode',{email:this.baseFormData.email,
-					// 	type:2})
+					this.$request.post('api/sysAuth/emailCode',{email:this.userInfo.email,type:4})
 				}
 			},
 			submit(form) {
 				this.$refs.form.validate().then(res => {
-					this.msgType = 'success'
-					this.messageText = this.$t('forget.success')
-					this.$refs.message.open()
-					setTimeout(() => {
-						uni.navigateTo({
-							url: "../login/login"
-						})
-
-					}, 500)
+					this.$request.post('api/sysAuth/modifyPassword', {
+						email:this.userInfo.email.trim(),
+						verificationCode:res.emailcode.trim(),
+						oldPassword:res.oldpassword.trim(),
+						newPassword: res.userpassword.trim(),
+						confirmNewPassword: res.userpassword1.trim(),
+					}).then(res => {
+						if (res.type === 'error') {
+							this.msgType = 'error'
+							this.messageText = res.message
+							this.$refs.message.open()
+						} else {
+							this.$refs.message.open()
+							setTimeout(() => {
+								uni.navigateTo({
+									url: "../login/login"
+								})
+							}, 500)
+						}
+					})
 				}).catch(err => {
 					this.msgType = 'error'
 					this.messageText = this.$t('forget.error')

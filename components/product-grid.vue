@@ -7,28 +7,28 @@
 		<view class="content" v-if="type===0">
 			<view>
 				<uni-grid :column="2" :show-border="false">
-					<uni-grid-item v-for="item in list" style="height:200px;width: 180px;" @click="toHref(item.id)">
+					<uni-grid-item v-for="item in list" style="height:200px;width: 180px;" @click="toHref(item.pid)">
 						<view style="width: 95%;height: 50%;">
-							<image :src="item.src" style="width: 100%;height: 100%;"></image>
+							<image :src="item.picPath" style="width: 100%;height: 100%;"></image>
 						</view>
-						<view class="text1">{{item.title}}</view>
-						<text class="price u-m-t-10">${{item.minPrice}}-{{item.maxPrice}}/{{item.unit}}</text>
-						<text class="moq u-m-t-10">{{$t('detail.moq')}}：{{item.moq}}{{item.unit}}</text>
+						<view class="text1">{{item.productname}}</view>
+						<text class="price u-m-t-10">{{item.m_Currency}}{{item.m_FobPrice}}/{{item.minOrderUnit}}</text>
+						<text class="moq u-m-t-10">{{$t('detail.moq')}}：{{item.m_Minimum_Order}}{{item.minOrderUnit}}</text>
 					</uni-grid-item>
 				</uni-grid>
 			</view>
 		</view>
 		<view v-if="type===1">
-			<view class="bg-white u-p-20 u-flex u-m-b-20" v-for="item in list" @click="toHref(item.id)">
+			<view class="bg-white u-p-20 u-flex u-m-b-20" v-for="item in list" @click="toHref(item.pid)">
 				<view style="width: 30%;height: 80px;">
-					<image :src="item.src" style="width: 100%;height: 100%;"></image>
+					<image :src="item.picPath" style="width: 100%;height: 100%;"></image>
 				</view>
-				<view class="u-m-l-20">
-					<view class="text1">{{item.title}}</view>
-					<text class="price u-m-t-10">${{item.minPrice}}-{{item.maxPrice}}/{{item.unit}}</text>
+				<view style="width: 65%;" class="u-m-l-20">
+					<view class="text1">{{item.productname}}</view>
+					<text class="price u-m-t-10">{{item.m_Currency}}{{item.m_FobPrice}}/{{item.minOrderUnit}}</text>
 					<view class="moq u-m-t-10 u-flex u-row-between">
-						<view>{{$t('detail.moq')}}：{{item.moq}}{{item.unit}}</view>
-						<view class="btn" @click="onToinquiry(item.id)">{{$t('detail.inquiry')}}</view>
+						<view>{{$t('detail.moq')}}：{{item.m_Minimum_Order}}{{item.minOrderUnit}}</view>
+						<view class="btn" @click="onToinquiry(item.pid)">{{$t('detail.inquiry')}}</view>
 					</view>
 				</view>
 

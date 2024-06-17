@@ -1,11 +1,11 @@
 <template>
 	<view class="container">
-		<uni-forms ref="form" :modelValue="baseFormData" class="form" :rules="rules" >
-			<uni-forms-item :label-width="95" :label="$t('inquiryItem.email')" >
-				<uni-easyinput class="labelInput" v-model="baseFormData.email" disabled/>
+		<uni-forms ref="form" :modelValue="baseFormData" class="form" :rules="rules">
+			<uni-forms-item :label-width="95" :label="$t('inquiryItem.email')">
+				<uni-easyinput class="labelInput" v-model="baseFormData.email" disabled />
 			</uni-forms-item>
 			<uni-forms-item :label-width="95" :label="$t('user.email-new')" name="newemail">
-				<uni-easyinput class="labelInput" v-model="baseFormData.newEmail" type="text"
+				<uni-easyinput class="labelInput" v-model="baseFormData.newemail" type="text"
 					:placeholder="$t('inquiryItem.place-input')" />
 			</uni-forms-item>
 			<uni-forms-item :label-width="95" :label="$t('login.email-code')" name="emailcode">
@@ -13,10 +13,10 @@
 					<uni-easyinput class="labelInput1" v-model="baseFormData.emailcode"
 						:placeholder="$t('register.in-email-code')" />
 					<button class="button" size="mini" type="default"
-						@click="getVode">{{sendCode ?  nums : $t('login.in-email-code')}}</button>
+						@click="getVode">{{sendCode ?  nums : $t('login.take-email-code')}}</button>
 				</view>
 			</uni-forms-item>
-		
+
 			<button type="primary" @click="submit('valiForm')">{{$t('forget.submit')}}</button>
 		</uni-forms>
 		<view>
@@ -33,16 +33,17 @@
 		data() {
 			return {
 				sendCode: false,
-				num: 120,
+				num: 60,
 				timer: null,
-				nums: '120s',
+				nums: '60s',
 				baseFormData: {
 					email: '111@qq.com',
-					newEmail:'',
+					newemail: '',
 					emailcode: '',
 					msgType: 'success',
 					messageText: '这是一条成功提示',
 				},
+				userInfo: uni.getStorageSync('userInfo') ? JSON.parse(uni.getStorageSync('userInfo')) : {},
 				rules: {
 					newemail: {
 						rules: [{
@@ -51,10 +52,10 @@
 							},
 							{
 								validateFunction: (rule, value, data, callback) => {
-									let pattern= /^\w+(-+.\w+)*@\w+(-.\w+)*.\w+(-.\w+)*$/
+									let pattern = /^\w+(-+.\w+)*@\w+(-.\w+)*.\w+(-.\w+)*$/
 									if (!pattern.test(value)) {
 										callback(this.$t('user.email-rule'))
-									}else if(value === this.baseFormData.email){
+									} else if (value === this.baseFormData.email) {
 										callback(this.$t('user.email-rule2'))
 									}
 									return true
@@ -62,15 +63,23 @@
 							}
 						]
 					},
+					emailcode: {
+						rules: [{
+							required: true,
+							errorMessage: this.$t('register.rules-code'),
+						}]
+					},
 				},
 			};
 		},
-
+		onShow() {
+			this.baseFormData.email = this.userInfo.email
+		},
 		methods: {
 			timers() {
 				if (this.num <= 0) {
 					clearTimeout(this.timer)
-					this.num = 120
+					this.num = 60
 					this.sendCode = false
 					this.timer = null
 				} else {
@@ -84,24 +93,31 @@
 				}
 			},
 			getVode() {
-				if (!this.sendCode ) {
+				if (!this.sendCode) {
 					this.sendCode = true
 					this.timers()
-					// this.$request.post('api/sysAuth/emailCode',{email:this.baseFormData.email,
-					// 	type:2})
+					this.$request.post('api/sysAuth/emailCode',{email:this.baseFormData.newemail,type:5})
 				}
 			},
 			submit(form) {
 				this.$refs.form.validate().then(res => {
-					this.msgType = 'success'
-					this.messageText = this.$t('forget.success')
-					this.$refs.message.open()
-					setTimeout(() => {
-						uni.navigateTo({
-							url: "../login/login"
-						})
-
-					}, 500)
+					this.$request.post('api/sysAuth/modifyEmail', {
+						newEmail:res.newemail.trim(),
+						verificationCode:res.emailcode.trim(),
+					}).then(res => {
+						if (res.type === 'error') {
+							this.msgType = 'error'
+							this.messageText = res.message
+							this.$refs.message.open()
+						} else {
+							this.$refs.message.open()
+							setTimeout(() => {
+								uni.navigateTo({
+									url: "../login/login"
+								})
+							}, 500)
+						}
+					})
 				}).catch(err => {
 					this.msgType = 'error'
 					this.messageText = this.$t('forget.error')

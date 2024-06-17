@@ -8,6 +8,7 @@ export const BASE_URL = 'https://newsiteapi.ecvv.com'
 
 // 接口路径
 export const API_URL = `https://newsiteapi.ecvv.com`
+// export const API_URL = `http://192.168.1.57:5005`
 
 // 全局网络图片地址变量，css背景图片地址变量在uni.scss中定义
 export const IMG_URL = 'https://file.shopro.top'

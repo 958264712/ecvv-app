@@ -14,8 +14,8 @@
 			"path": "pages/index/index",
 			"style": {
 				// "navigationBarTitleText": "%index.title%",
-				"enablePullDownRefresh": true,
-				"transparentTitle": "always"
+				"transparentTitle": "always",
+				"onReachBottomDistance":50
 			}
 		}, {
 			"path": "pages/classify/classify",
@@ -184,7 +184,8 @@
 			"path": "pages/explosiveGoods/explosiveGoods",
 			"style": {
 				"navigationBarTitleText": "%index.explosive-goods%",
-				"enablePullDownRefresh": false
+				"enablePullDownRefresh": false,
+				"onReachBottomDistance": 50
 			}
 		},
 		{

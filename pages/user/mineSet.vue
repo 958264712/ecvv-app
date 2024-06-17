@@ -9,7 +9,7 @@
 		</view>
 		<view class="fixed">
 			  <view class="cell-title" @click="onDeleteAccount">{{$t('user.set-sign-out')}}</view>
-			  <view class="cell-title red">{{$t('user.set-quit')}}</view>
+			  <view class="cell-title red" @click="logOut">{{$t('user.set-quit')}}</view>
 		</view>
 		<uni-popup ref="alertDialog" type="center" class="alert">
 			<text class="text">{{$t("user.set-sign-title")}}</text>
@@ -124,6 +124,14 @@
 			},
 			dialogClose() {
 				this.$refs.alertDialog.close()
+			},
+			logOut(){
+				uni.removeStorageSync('userInfo');
+				uni.removeStorageSync('accessToken');
+				uni.removeStorageSync('refreshToken');
+				uni.navigateTo({
+					url:'/pages/login/login'
+				})
 			}
 		},
 
